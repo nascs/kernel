@@ -150,6 +150,8 @@ static int jadard_get_modes(struct drm_panel *panel,
 	connector->display_info.width_mm = mode->width_mm;
 	connector->display_info.height_mm = mode->height_mm;
 
+	drm_connector_set_panel_orientation(connector, DRM_MODE_ROTATE_90);
+
 	return 1;
 }
 
