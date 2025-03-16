@@ -127,6 +127,7 @@ struct goodix_ts_data {
     int irq;
     int irq_pin;
     int pwr_pin;
+    int motor_pin;
     int rst_pin;
     int tp_select_pin;
     int rst_val;
