@@ -70,6 +70,7 @@ static u8 gtp_y_reverse = TRUE;
 
 static const char *goodix_ts_name = "goodix-ts";
 static struct workqueue_struct *goodix_wq;
+static struct goodix_ts_data *g_ts;
 struct i2c_client * gtp_i2c_connect_client = NULL; 
 static u8 config[GTP_CONFIG_MAX_LENGTH + GTP_ADDR_LENGTH]
                 = {GTP_REG_CONFIG_DATA >> 8, GTP_REG_CONFIG_DATA & 0xff};
@@ -568,6 +569,8 @@ static void gtp_pen_up(s32 id)
 }
 #endif
 
+u8 g_state = 0;
+
 /*******************************************************
 Function:
     Goodix touchscreen work function
@@ -802,7 +805,7 @@ static void goodix_ts_work_func(struct work_struct *work)
     if (touch_num > 1)
     {
         u8 buf[8 * GTP_MAX_TOUCH] = {(GTP_READ_COOR_ADDR + 10) >> 8, (GTP_READ_COOR_ADDR + 10) & 0xff};
-
+		//GTP_GPIO_OUTPUT(ts->motor_pin, 1);
         ret = gtp_i2c_read(ts->client, buf, 2 + 8 * (touch_num - 1)); 
         memcpy(&point_data[12], &buf[2], 8 * (touch_num - 1));
     }
@@ -946,6 +949,20 @@ static void goodix_ts_work_func(struct work_struct *work)
                     id = coor_data[pos] & 0x0F;
                     touch_index |= (0x01<<id);
                 }
+
+	//	ig(g_state == 0)
+	//	{
+	//	g_state = 1;
+//
+  //              GTP_DEBUG("control motor pin high !");
+//		GTP_GPIO_OUTPUT(g_ts->motor_pin, 1);
+//		GTP_GPIO_OUTPUT(ts->motor_pin, 1);
+//		msleep(5);
+//		GTP_GPIO_OUTPUT(g_ts->motor_pin, 0);
+//		GTP_GPIO_OUTPUT(ts->motor_pin, 0);
+  //              GTP_DEBUG("control motor pin low !");
+    //            GTP_DEBUG("control motor pin low !");
+//		}
             }
             else
             {
@@ -983,6 +1000,20 @@ static void goodix_ts_work_func(struct work_struct *work)
                 gtp_touch_down(ts, id, input_x, input_y, input_w);
             }
         }
+	
+  //              GTP_DEBUG("control motor pin start !");
+//	if(g_state==0)
+//	{
+//		g_state = 1;
+  //      GTP_GPIO_OUTPUT(ts->motor_pin, 0);
+    //            GTP_DEBUG("control motor pin high !");
+//		GTP_GPIO_OUTPUT(g_ts->motor_pin, 1);
+  //      msleep(15);
+//	GTP_GPIO_OUTPUT(ts->motor_pin, 0);
+//	GTP_DEBUG("control motor pin low !");
+//		GTP_GPIO_OUTPUT(g_ts->motor_pin, 0);
+//	}
+    //            GTP_DEBUG("control motor pin end !");
     }
     else if (pre_touch)
     {
@@ -997,7 +1028,9 @@ static void goodix_ts_work_func(struct work_struct *work)
         else
     #endif
         {
+//		g_state = 0;
             GTP_DEBUG("Touch Release!");
+//	    GTP_DEBUG("xxxx!");
             gtp_touch_up(ts, 0);
         }
     }
@@ -1115,6 +1148,7 @@ void gtp_reset_guitar(struct i2c_client *client, s32 ms)
     GTP_DEBUG_FUNC();
     GTP_INFO("Guitar reset");
     GTP_GPIO_OUTPUT(ts->rst_pin, 0);   // begin select I2C slave addr
+    //GTP_GPIO_OUTPUT(ts->motor_pin, 1); 
     msleep(ms);                         // T2: > 10ms
     // HIGH: 0x28/0x29, LOW: 0xBA/0xBB
     GTP_GPIO_OUTPUT(ts->irq_pin, client->addr == 0x14);
@@ -1124,6 +1158,7 @@ void gtp_reset_guitar(struct i2c_client *client, s32 ms)
     
     msleep(6);                          // T4: > 5ms
 
+    //GTP_GPIO_OUTPUT(ts->motor_pin, 0); 
     //GTP_GPIO_AS_INPUT(GTP_RST_PORT);    // end select I2C slave addr
     gpio_direction_input(ts->rst_pin);
     //s3c_gpio_setpull(pin, S3C_GPIO_PULL_NONE);
@@ -1858,6 +1893,15 @@ static s8 gtp_request_io_port(struct goodix_ts_data *ts)
         return -ENODEV;
     }
     
+   // ret = GTP_GPIO_REQUEST(ts->motor_pin, "GTP_MOTOR_PORT");
+    //if (ret < 0) 
+    //{
+     //   GTP_ERROR("2Failed to request GPIO:%d, ERRNO:%d",(s32)ts->motor_pin, ret);
+//		GTP_GPIO_FREE(ts->motor_pin);
+  //      return -ENODEV;
+   // }
+    //GTP_GPIO_OUTPUT(ts->motor_pin, 0);
+
     ret = GTP_GPIO_REQUEST(ts->irq_pin, "GTP_INT_IRQ");
     if (ret < 0) 
     {
@@ -2627,7 +2671,7 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
     u16 version_info;
     
     struct device_node *np = client->dev.of_node;
-    enum of_gpio_flags rst_flags, pwr_flags;
+    enum of_gpio_flags rst_flags, pwr_flags, motor_flags;
     u32 val;
 	printk("%s() start\n", __func__);
 
@@ -2682,8 +2726,8 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	} else if (val == 9110) {
 		m89or101 = FALSE;
 		bgt9110 = TRUE;
-		gtp_change_x2y = FALSE;
-		gtp_x_reverse = FALSE;
+		gtp_change_x2y = TRUE;
+		gtp_x_reverse = TRUE;
 		gtp_y_reverse = FALSE;
 	} else if (val == 9111) {
 		m89or101 = FALSE;
@@ -2701,8 +2745,8 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		m89or101 = FALSE;
 		bgt9271 = TRUE;
 		gtp_change_x2y = FALSE;
-		gtp_x_reverse = FALSE;
-		gtp_y_reverse = FALSE;
+		gtp_x_reverse = TRUE;
+		gtp_y_reverse = TRUE;
 	} else if (val == 970) {
 		m89or101 = FALSE;
 		bgt911 = FALSE;
@@ -2735,6 +2779,7 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
     ts->irq_pin = of_get_named_gpio_flags(np, "touch-gpio", 0, (enum of_gpio_flags *)(&ts->irq_flags));
     ts->rst_pin = of_get_named_gpio_flags(np, "reset-gpio", 0, &rst_flags);
     ts->pwr_pin = of_get_named_gpio_flags(np, "power-gpio", 0, &pwr_flags);
+    //ts->motor_pin = of_get_named_gpio_flags(np, "motor-gpio", 0, &motor_flags);
     //ts->tp_select_pin = of_get_named_gpio_flags(np, "tp-select-gpio", 0, &tp_select_flags);
     if (of_property_read_u32(np, "max-x", &val)) {
     	dev_err(&client->dev, "no max-x defined\n");
@@ -2767,6 +2812,7 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 #endif
 
     i2c_set_clientdata(client, ts);
+    g_ts = ts;
     
     ts->gtp_rawdiff_mode = 0;
 
@@ -2887,6 +2933,7 @@ probe_init_error:
     printk("   <%s>_%d  prob error !!!!!!!!!!!!!!!\n", __func__, __LINE__);    
     GTP_GPIO_FREE(ts->rst_pin);
     GTP_GPIO_FREE(ts->irq_pin);
+    //GTP_GPIO_FREE(ts->motor_pin);
 probe_init_error_requireio:
     tp_unregister_fb(&ts->tp); 
     kfree(ts);
