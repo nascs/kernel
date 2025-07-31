@@ -1387,7 +1387,7 @@
 		/* GPIO_48 ~ GPIO_51 */
 		"PIN_21", "PIN_19", "PIN_23", "PIN_24",
 		/* GPIO_52 ~ GPIO_55 */
-		"PIN_24", "", "", "PIN_26",
+		"", "", "", "PIN_26",
 		/* GPIO_56 ~ GPIO_59 */
 		"PIN_33", "PIN_22", "PIN_37", "PIN_36",
 		/* GPIO_60 ~ GPIO_63 */
