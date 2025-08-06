@@ -101,7 +101,7 @@ static u32 msm_dp_panel_get_supported_bpp(struct msm_dp_panel *msm_dp_panel,
 		u32 mode_edid_bpp, u32 mode_pclk_khz)
 {
 	const struct msm_dp_link_info *link_info;
-	const u32 max_supported_bpp = 30, min_supported_bpp = 18;
+	const u32 max_supported_bpp = 30, min_supported_bpp = 24;
 	u32 bpp, data_rate_khz;
 
 	bpp = min(mode_edid_bpp, max_supported_bpp);
