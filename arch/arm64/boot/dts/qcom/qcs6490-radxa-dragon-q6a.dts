@@ -1042,6 +1042,15 @@
 &spi14 {
 	qcom,enable-gsi-dma;
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&qup_spi14_data_clk>, <&qup_spi14_cs>;
+
+    spidev@0 {
+            compatible = "spidev";
+            spi-max-frequency = <50000000>;
+            reg = <0>;
+    };
+
 };
 
 &swr0 {
