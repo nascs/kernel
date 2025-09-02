@@ -10,6 +10,7 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
 #include <dt-bindings/pwm/pwm.h>
+#include <drm/drm_mipi_dsi.h>
 
 &{/} {
 	vcc_3v3_lcd: vcc-3v3-lcd-regulator {
