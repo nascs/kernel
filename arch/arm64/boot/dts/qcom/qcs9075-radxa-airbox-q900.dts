@@ -98,6 +98,22 @@
 			color = <LED_COLOR_ID_BLUE>;
 		};
 	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		pinctrl-0 = <&gpio_keys_default>;
+		pinctrl-names = "default";
+
+		button-poweroff {
+			label = "Power Off";
+			gpios = <&tlmm 97 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_POWER>;
+			wakeup-source;
+			debounce-interval = <15>;
+		};
+	};
+
 };
 
 &apps_rsc {
@@ -1165,6 +1181,13 @@
 	qup_i2c18_default: qup-i2c18-state {
 		pins = "gpio95", "gpio96";
 		function = "qup2_se4";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	gpio_keys_default: gpio-keys-default-state {
+		pins = "gpio97";
+		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-up;
 	};
