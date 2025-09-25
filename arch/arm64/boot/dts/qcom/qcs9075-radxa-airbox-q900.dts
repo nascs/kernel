@@ -618,6 +618,11 @@
 	pinctrl-0 = <&qup_i2c18_default>;
 	pinctrl-names = "default";
 	status = "okay";
+
+	hym8563: hym8563@51 {
+		compatible = "haoyu,hym8563";
+		reg = <0x51>;
+	};
 };
 
 &i2c19 {
@@ -773,10 +778,10 @@
 	qcom,xfer-mode = <1>;
 };
 
-&spi18 {
-	qcom,load-firmware;
-	qcom,xfer-mode = <1>;
-};
+// &spi18 {
+// 	qcom,load-firmware;
+// 	qcom,xfer-mode = <1>;
+// };
 
 &spi19 {
 	qcom,load-firmware;
@@ -904,10 +909,10 @@
 	qcom,xfer-mode = <1>;
 };
 
-&uart18 {
-	qcom,load-firmware;
-	qcom,xfer-mode = <1>;
-};
+// &uart18 {
+// 	qcom,load-firmware;
+// 	qcom,xfer-mode = <1>;
+// };
 
 &uart19 {
 	qcom,load-firmware;
