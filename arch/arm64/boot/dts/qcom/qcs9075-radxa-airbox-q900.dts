@@ -87,15 +87,26 @@
 
 	gpio_leds: gpio-leds {
 		compatible = "gpio-leds";
-
 		pinctrl-names = "default";
-		pinctrl-0 = <&user_led_state>;
+		pinctrl-0 = <&status_led_state>, <&power_led_state>;
 
-		user-led {
+		status-led {
+			lable = "status:led";
 			gpios = <&pmm8654au_1_gpios 11 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
 			function = LED_FUNCTION_STATUS;
 			color = <LED_COLOR_ID_BLUE>;
+			default-state = "on";
+		};
+
+		power-led {
+			lable = "power:led";
+			gpios = <&pmm8654au_1_gpios 98 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "none";
+			function = LED_FUNCTION_POWER;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
+			status = "disabled";
 		};
 	};
 
@@ -619,10 +630,10 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-	hym8563: hym8563@51 {
-		compatible = "haoyu,hym8563";
-		reg = <0x51>;
-	};
+	// hym8563: hym8563@51 {
+	// 	compatible = "haoyu,hym8563";
+	// 	reg = <0x51>;
+	// };
 };
 
 &i2c19 {
@@ -1051,7 +1062,7 @@
 		bias-pull-up;
 	};
 
-	user_led_state: uset-led-state {
+	status_led_state: uset-led-state {
 		pins = "gpio11";
 		function = "normal";
 		output-high;
@@ -1194,6 +1205,13 @@
 		pins = "gpio97";
 		function = "gpio";
 		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	power_led_state: power-led-state {
+		pins = "gpio98";
+		function = "normal";
+		output-high;
 		bias-pull-up;
 	};
 };
