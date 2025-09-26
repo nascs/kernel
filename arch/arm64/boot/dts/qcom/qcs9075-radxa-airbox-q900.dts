@@ -51,6 +51,19 @@
 		regulator-name = "vcc5v0_usb30_otg";
 		gpio = <&pmm8654au_2_gpios 3 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
+		pinctrl-0 = <&vcc3v3_usb30_en_otg_state>;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-boot-on;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	vcc5v0_usb30_regulator: vcc5v0-usb30_regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_usb30";
+		gpio = <&pmm8654au_2_gpios 4 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
 		pinctrl-0 = <&vcc3v3_usb30_en_state>;
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
@@ -1009,7 +1022,7 @@
 	qcom,enable-rt;
 	wakeup-source;
 	dr_mode = "host";
-	vbus_dwc3-supply = <&vcc5v0_usb30_otg_regulator>;
+	vbus_dwc3-supply = <&vcc5v0_usb30_regulator>;
 	status = "okay";
 };
 
@@ -1067,8 +1080,15 @@
 
 &pmm8654au_2_gpios {
 
-	vcc3v3_usb30_en_state: vcc3v3-usb30-en-state {
+	vcc3v3_usb30_en_otg_state: vcc3v3-usb30-en-otg-state {
 		pins = "gpio3";
+		function = "normal";
+		output-high;
+		bias-pull-up;
+	};
+
+	vcc3v3_usb30_en_state: vcc3v3-usb30-en-state {
+		pins = "gpio4";
 		function = "normal";
 		output-high;
 		bias-pull-up;
