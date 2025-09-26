@@ -373,14 +373,14 @@
 
 &ethernet0 {
 	phy-handle = <&sgmii_phy0>;
-	phy-mode = "2500base-x";
+	phy-mode = "sgmii";
 
 	pinctrl-0 = <&ethernet0_default>;
 	pinctrl-names = "default";
 
 	snps,mtl-rx-config = <&mtl_rx_setup>;
 	snps,mtl-tx-config = <&mtl_tx_setup>;
-	snps,ps-speed = <2500>;
+	snps,ps-speed = <1000>;
 
 	status = "okay";
 
@@ -461,14 +461,14 @@
 
 &ethernet1 {
 	phy-handle = <&sgmii_phy1>;
-	phy-mode = "2500base-x";
+	phy-mode = "sgmii";
 
 	pinctrl-0 = <&ethernet1_default>;
 	pinctrl-names = "default";
 
 	snps,mtl-rx-config = <&mtl_rx_setup1>;
 	snps,mtl-tx-config = <&mtl_tx_setup1>;
-	snps,ps-speed = <2500>;
+	snps,ps-speed = <1000>;
 
 	status = "okay";
 
