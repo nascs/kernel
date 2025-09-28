@@ -136,6 +136,13 @@
 			debounce-interval = <30>;
 		};
 	};
+
+	radxa_fan_pwm: radxa-fan-pwm {
+		compatible = "pwm-gpio";
+		#pwm-cells = <3>;
+		pwm-gpio = <&pmm8654au_1_gpios 12 GPIO_ACTIVE_HIGH>;
+		gpios = <&pmm8654au_1_gpios 12 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &apps_rsc {
