@@ -388,6 +388,7 @@ static int drm_atomic_crtc_set_property(struct drm_crtc *crtc,
 					&state->degamma_lut,
 					val,
 					-1, sizeof(struct drm_color_lut),
+					0,
 					&replaced);
 		state->color_mgmt_changed |= replaced;
 		return ret;
@@ -396,6 +397,7 @@ static int drm_atomic_crtc_set_property(struct drm_crtc *crtc,
 					&state->ctm,
 					val,
 					sizeof(struct drm_color_ctm), -1,
+					0,
 					&replaced);
 		state->color_mgmt_changed |= replaced;
 		return ret;
@@ -404,6 +406,7 @@ static int drm_atomic_crtc_set_property(struct drm_crtc *crtc,
 					&state->gamma_lut,
 					val,
 					-1, sizeof(struct drm_color_lut),
+					0,
 					&replaced);
 		state->color_mgmt_changed |= replaced;
 		return ret;
@@ -546,6 +549,7 @@ static int drm_atomic_plane_set_property(struct drm_plane *plane,
 					val,
 					-1,
 					sizeof(struct drm_mode_rect),
+					0,
 					&replaced);
 		return ret;
 	} else if (property == plane->scaling_filter_property) {
@@ -741,7 +745,7 @@ static int drm_atomic_connector_set_property(struct drm_connector *connector,
 		ret = drm_property_replace_blob_from_id(dev,
 				&state->hdr_output_metadata,
 				val,
-				sizeof(struct hdr_output_metadata), -1,
+				sizeof(struct hdr_output_metadata), -1, 0,
 				&replaced);
 		return ret;
 	} else if (property == config->aspect_ratio_property) {

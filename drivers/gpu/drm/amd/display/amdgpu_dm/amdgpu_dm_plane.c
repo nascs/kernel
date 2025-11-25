@@ -1677,6 +1677,7 @@ dm_atomic_plane_set_property(struct drm_plane *plane,
 							&dm_plane_state->degamma_lut,
 							val, -1,
 							sizeof(struct drm_color_lut),
+							0,
 							&replaced);
 		dm_plane_state->base.color_mgmt_changed |= replaced;
 		return ret;
@@ -1695,6 +1696,7 @@ dm_atomic_plane_set_property(struct drm_plane *plane,
 							&dm_plane_state->ctm,
 							val,
 							sizeof(struct drm_color_ctm_3x4), -1,
+							0,
 							&replaced);
 		dm_plane_state->base.color_mgmt_changed |= replaced;
 		return ret;
@@ -1703,6 +1705,7 @@ dm_atomic_plane_set_property(struct drm_plane *plane,
 							&dm_plane_state->shaper_lut,
 							val, -1,
 							sizeof(struct drm_color_lut),
+							0,
 							&replaced);
 		dm_plane_state->base.color_mgmt_changed |= replaced;
 		return ret;
@@ -1716,6 +1719,7 @@ dm_atomic_plane_set_property(struct drm_plane *plane,
 							&dm_plane_state->lut3d,
 							val, -1,
 							sizeof(struct drm_color_lut),
+							0,
 							&replaced);
 		dm_plane_state->base.color_mgmt_changed |= replaced;
 		return ret;
@@ -1724,6 +1728,7 @@ dm_atomic_plane_set_property(struct drm_plane *plane,
 							&dm_plane_state->blend_lut,
 							val, -1,
 							sizeof(struct drm_color_lut),
+							0,
 							&replaced);
 		dm_plane_state->base.color_mgmt_changed |= replaced;
 		return ret;
