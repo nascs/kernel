@@ -363,57 +363,121 @@ static int _dpu_rm_reserve_lms(struct dpu_rm *rm,
 	int dspp_idx[MAX_BLOCKS] = {0};
 	int i, lm_count = 0;
 
+	/* 打印所有可用的mixer信息 */
+	printk("DPU: 可用的mixer数量: %zu\n", ARRAY_SIZE(rm->mixer_blks));
+
+	printk("DPU: crtc_id=%u: 请求的 LM 数量: %d\n", crtc_id, topology->num_lm);
+
+	/* 调试信息：打印请求的LM数量 */
+	printk("DPU: crtc_id=%u: 请求的 LM 数量: %d\n", crtc_id, topology->num_lm);
+
+    // 打印所有LM状态
+    for (i = 0; i < ARRAY_SIZE(rm->mixer_blks); i++) {
+        if (rm->mixer_blks[i]) {
+            struct dpu_hw_mixer *lm = (struct dpu_hw_mixer *)rm->mixer_blks[i];
+            bool reserved = test_bit(i, (const unsigned long *)global_state->mixer_to_crtc_id);
+            printk("DPU: LM[%d]: idx=%d, right_mixer=%d, width=%d, height=%d, reserved=%d, crtc_owner=%d\n",
+                   i, lm->idx, lm->cfg.right_mixer,
+                   lm->cfg.out_width, lm->cfg.out_height,
+                   reserved, global_state->mixer_to_crtc_id[i]);
+        } else {
+            printk("DPU: LM[%d]: NULL\n", i);
+        }
+    }
+
 	if (!topology->num_lm) {
-		DPU_ERROR("invalid number of lm: %d\n", topology->num_lm);
+		printk("==> DPU: invalid number of lm: %d <==\n", topology->num_lm);
 		return -EINVAL;
 	}
 
 	/* Find a primary mixer */
+	printk("DPU: 开始查找可用的LM (需要 %d 个)\n", topology->num_lm);
 	for (i = 0; i < ARRAY_SIZE(rm->mixer_blks) &&
 			lm_count < topology->num_lm; i++) {
-		if (!rm->mixer_blks[i])
-			continue;
-
-		/*
-		 * Reset lm_count to an even index. This will drop the previous
-		 * primary mixer if failed to find its peer.
-		 */
-		lm_count &= ~1;
-		lm_idx[lm_count] = i;
-
-		if (!_dpu_rm_check_lm_and_get_connected_blks(rm, global_state,
-				crtc_id, i, &pp_idx[lm_count],
-				&dspp_idx[lm_count], topology)) {
+		if (!rm->mixer_blks[i]) {
+			printk("DPU: 跳过 LM[%d]: 为NULL\n", i);
 			continue;
 		}
 
-		++lm_count;
+		bool is_reserved = test_bit(i, (const unsigned long *)global_state->mixer_to_crtc_id);
+		uint32_t owner = global_state->mixer_to_crtc_id[i];
+		printk("DPU: 检查 LM[%d] 状态: reserved=%d, crtc_owner=%u\n",
+		       i, is_reserved, owner);
 
-		/* Valid primary mixer found, find matching peers */
-		if (lm_count < topology->num_lm) {
+		// 如果LM已经被当前CRTC占用，可以重复使用
+		if (is_reserved && owner == crtc_id) {
+			printk("DPU: LM[%d] 已被当前 CRTC %u 占用，可以重用\n", i, crtc_id);
+		} else if (is_reserved) {
+			printk("DPU: 跳过 LM[%d]: 已被 CRTC %u 占用\n", i, owner);
+			continue;
+		}
+
+		/* 记录当前LM索引 */
+		lm_idx[lm_count] = i;
+		printk("DPU: 尝试分配 LM[%d] (idx=%d) 给 CRTC %u\n", 
+		       i, ((struct dpu_hw_mixer *)rm->mixer_blks[i])->idx, crtc_id);
+
+		/* 尝试分配当前LM */
+		if (!_dpu_rm_check_lm_and_get_connected_blks(rm, global_state,
+				crtc_id, i, &pp_idx[lm_count], &dspp_idx[lm_count], topology)) {
+			printk("DPU: LM[%d] 检查失败，继续查找...\n", i);
+			continue;
+		}
+
+		/* 成功分配一个LM */
+		printk("DPU: 成功分配 LM[%d] 给 CRTC %u (当前已分配 %d/%d)\n",
+		       i, crtc_id, lm_count + 1, topology->num_lm);
+		lm_count++;
+
+		/* 如果已经分配了足够的 LM，完成分配 */
+		if (lm_count >= topology->num_lm) {
+			break;
+		}
+
+		/* 如果需要多个 LM，尝试找到下一个可用的 LM */
+		if (topology->num_lm > 1) {
 			int j = _dpu_rm_get_lm_peer(rm, i);
+			if (j >= 0 && j < ARRAY_SIZE(rm->mixer_blks) && rm->mixer_blks[j]) {
+				bool peer_reserved = test_bit(j, (const unsigned long *)global_state->mixer_to_crtc_id);
+				uint32_t peer_owner = global_state->mixer_to_crtc_id[j];
+				
+				if (!peer_reserved || peer_owner == crtc_id) {
+					/* 尝试分配 peer LM */
+					if (_dpu_rm_check_lm_and_get_connected_blks(rm, global_state,
+							crtc_id, j, &pp_idx[lm_count], &dspp_idx[lm_count], topology)) {
+						lm_idx[lm_count] = j;
+						printk("DPU: 成功分配 peer LM[%d] 给 CRTC %u (当前已分配 %d/%d)\n",
+						       j, crtc_id, lm_count + 1, topology->num_lm);
+						lm_count++;
+						break;
+					}
+				}
+			}
+		}
 
-			/* ignore the peer if there is an error or if the peer was already processed */
-			if (j < 0 || j < i)
-				continue;
-
-			if (!rm->mixer_blks[j])
-				continue;
-
-			if (!_dpu_rm_check_lm_and_get_connected_blks(rm,
-					global_state, crtc_id, j,
-					&pp_idx[lm_count], &dspp_idx[lm_count],
-					topology)) {
+		/* 如果分配了部分LM但不够，检查是否可以降级为单LM */
+		if (lm_count > 0 && lm_count < topology->num_lm) {
+			if (lm_count == 1 && topology->num_lm == 2) {
+				printk("DPU: 警告: 无法分配2个LM，尝试使用单 LM 模式\n");
+				topology->num_lm = 1; /* 降级为单LM模式 */
+				break;
+			} else {
+				printk("DPU: 警告: 无法分配足够的LM (需要 %d, 已分配 %d), 回滚分配\n",
+				       topology->num_lm, lm_count);
+				lm_count = 0;
 				continue;
 			}
+		}
 
-			lm_idx[lm_count] = j;
-			++lm_count;
+		/* 如果成功分配了足够的LM，完成分配 */
+		if (lm_count >= topology->num_lm) {
+			break;
 		}
 	}
 
 	if (lm_count != topology->num_lm) {
-		DPU_DEBUG("unable to find appropriate mixers\n");
+		printk("DPU: 错误: 需要 %d 个LM, 但只找到 %d 个 (crtc_id=%u)\n", 
+		       topology->num_lm, lm_count, crtc_id);
 		return -ENAVAIL;
 	}
 
