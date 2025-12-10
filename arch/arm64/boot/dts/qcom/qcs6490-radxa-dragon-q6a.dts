@@ -701,6 +701,11 @@
 	status = "okay";
 };
 
+/* It takes a long time in ufshcd_init_crypto when enabled */
+&ice {
+	status = "disabled";
+};
+
 &vreg_l7b_2p952 {
 	regulator-min-microvolt = <3000000>;
 	regulator-max-microvolt = <3000000>;
