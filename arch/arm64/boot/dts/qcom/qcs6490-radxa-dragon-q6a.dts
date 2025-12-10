@@ -31,6 +31,8 @@
 	qcom,board-id = <32 0x2>, <32 0x602>;
 
 	aliases {
+		mmc0 = &sdhc_1;
+		mmc1 = &sdhc_2;
 		serial0 = &uart5;
 	};
 
