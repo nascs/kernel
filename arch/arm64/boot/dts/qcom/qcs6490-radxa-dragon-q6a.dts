@@ -682,6 +682,8 @@
 	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
+	qcom,load-firmware;
+	qcom,xfer-mode = <1>;
 
 	/* RTC RS4C411ZAE */
 	rtc_m41t11: m41t11@68 {
