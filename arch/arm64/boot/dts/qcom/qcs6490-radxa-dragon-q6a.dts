@@ -129,6 +129,35 @@
 			color = <LED_COLOR_ID_BLUE>;
 		};
 	};
+
+	wcd938x: audio-codec {
+		compatible = "qcom,wcd9380-codec";
+
+		pinctrl-0 = <&wcd_default>;
+		pinctrl-names = "default";
+
+		reset-gpios = <&tlmm 83 GPIO_ACTIVE_LOW>;
+
+		vdd-rxtx-supply = <&vreg_l18b_1p8>;
+		vdd-io-supply = <&vreg_l18b_1p8>;
+		vdd-buck-supply = <&vreg_l17b_1p7>;
+		vdd-mic-bias-supply = <&vreg_bob_3p296>;
+
+		qcom,micbias1-microvolt = <1800000>;
+		qcom,micbias2-microvolt = <1800000>;
+		qcom,micbias3-microvolt = <1800000>;
+		qcom,micbias4-microvolt = <1800000>;
+		qcom,mbhc-buttons-vthreshold-microvolt = <75000 150000 237000 500000 500000 500000 500000 500000>;
+		qcom,mbhc-headset-vthreshold-microvolt = <1700000>;
+		qcom,mbhc-headphone-vthreshold-microvolt = <50000>;
+		qcom,rx-device = <&wcd_rx>;
+		qcom,tx-device = <&wcd_tx>;
+
+		qcom,hphl-jack-type-normally-closed;
+
+		#sound-dai-cells = <1>;
+	};
+
 };
 
 &gcc {
@@ -268,8 +297,9 @@
 		};
 
 		vreg_l17b_1p7: ldo17 {
-			regulator-min-microvolt = <1700000>;
-			regulator-max-microvolt = <1900000>;
+			regulator-name = "vreg_l17b_1p7";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1896000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
 
@@ -402,7 +432,7 @@
 		};
 
 		vreg_bob_3p296: bob {
-			regulator-min-microvolt = <3008000>;
+			regulator-min-microvolt = <3032000>;
 			regulator-max-microvolt = <3960000>;
 		};
 	};
@@ -935,6 +965,26 @@
 	drive-strength = <10>;
 };
 
+&swr0 {
+	status = "okay";
+
+	wcd_rx: codec@0,4 {
+		compatible = "sdw20217010d00";
+		reg = <0 4>;
+		qcom,rx-port-mapping = <1 2 3 4 5>;
+	};
+};
+
+&swr1 {
+	status = "okay";
+
+	wcd_tx: codec@0,3 {
+		compatible = "sdw20217010d00";
+		reg = <0 3>;
+		qcom,tx-port-mapping = <1 1 2 3>;
+	};
+};
+
 &tlmm {
 
 	sd_cd: sd-cd-state {
@@ -956,5 +1006,13 @@
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-up;
+	};
+
+	wcd_default: wcd-reset-n-active-state {
+		pins = "gpio83";
+		function = "gpio";
+		drive-strength = <16>;
+		bias-disable;
+		output-low;
 	};
 };
